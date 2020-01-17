@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Storage</title>
+    </head>
+    <body>
+        <div class="content">
+            <h3>S3 Storage</h3>
+            <div>
+                <h3>Upload here:</h3>
+                <form method="POST" action="/upload" enctype=multipart/form-data>
+                    <input type=file name=file>
+                    <input type=submit value=Upload>
+                </form>
+            </div>
+            <div>
+                <h3>Files that have been uploaded:</h3>
+                <ul>
+                    {% for item in contents %}
+                    <li>
+                        <a href="/download/{{ item.Key }}"> {{ item.Key }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </body>
+</html>

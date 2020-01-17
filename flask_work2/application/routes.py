@@ -1,8 +1,16 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, send_file
 from application import app, db, bcrypt
 from application.models import Posts, User
-from application.forms import PostForm, RegistrationForm, LoginForm, UpdateAccountForm
+from application.forms import PostForm, RegistrationForm, LoginForm, UpdateAccountForm, PhotoForm
 from flask_login import login_user, current_user, logout_user, login_required
+from application.s3_functions import list_files, download_file, upload_file
+from werkzeug.utils import secure_filename
+#import os
+#import boto3
+
+
+UPLOAD_FOLDER = "uploads"
+BUCKET = "flascket"
 
 @app.route('/')
 @app.route('/home')
@@ -86,3 +94,35 @@ def account():
         form.email.data = current_user.email
     return render_template('account.html', title='Account', form=form)
 
+#@app.route("/upload", methods=['GET', 'POST'])
+#def upload():
+   # if form.validate_on_submit():
+       # f = form.photo.data
+       # filename = secure_filename(f.filename)
+       # f.save(os.path.join(
+        #    app.instance_path, 'photos', filename
+       # ))
+       # return redirect(url_for('index'))
+
+   # return render_template('upload.html', form=form)
+
+@app.route("/storage")
+def storage():
+    contents = list_files("flascket")
+    return render_template('storage.html', contents=Contents)
+
+@app.route("/upload", methods=['POST'])
+def upload():
+    if request.method == "POST":
+        f = request.files['file']
+        f.save(os.path.join(UPLOAD_FOLDER, f.filename))
+        upload_file(f"uploads/{f.filename}", BUCKET)
+
+        return redirect("/storage")
+
+@app.route("/download/<filename>", methods=['GET'])
+def download(filename):
+    if request.method == 'GET':
+        output = download_file(filename, BUCKET)
+
+        return send_file(output, as_attachment=True)
